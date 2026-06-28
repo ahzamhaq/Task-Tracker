@@ -1,4 +1,5 @@
 import ProgressRing from "../ui/ProgressRing.jsx";
+import AnimatedNumber from "../ui/AnimatedNumber.jsx";
 import { greeting } from "../../utils/format.js";
 
 export default function DashboardHeader({ stats, dueToday }) {
@@ -38,7 +39,7 @@ function Metric({ label, value, accent }) {
   return (
     <div className="text-center sm:text-left">
       <div className={`text-[18px] font-semibold tabular-nums ${color}`}>
-        {value}
+        <AnimatedNumber value={value} />
       </div>
       <div className="text-[10.5px] uppercase tracking-wider text-muted-2">
         {label}

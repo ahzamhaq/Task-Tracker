@@ -28,6 +28,29 @@ export const dueState = (value) => {
   return { label: formatDate(value), tone: "muted" };
 };
 
+export const relativeTime = (value) => {
+  if (!value) return "";
+  const d = new Date(value);
+  const diff = (d.getTime() - Date.now()) / 1000;
+  const abs = Math.abs(diff);
+  const fmt = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
+  const units = [
+    ["year", 60 * 60 * 24 * 365],
+    ["month", 60 * 60 * 24 * 30],
+    ["week", 60 * 60 * 24 * 7],
+    ["day", 60 * 60 * 24],
+    ["hour", 60 * 60],
+    ["minute", 60],
+    ["second", 1],
+  ];
+  for (const [unit, secs] of units) {
+    if (abs >= secs || unit === "second") {
+      return fmt.format(Math.round(diff / secs), unit);
+    }
+  }
+  return "";
+};
+
 export const toInputDate = (value) => {
   if (!value) return "";
   const d = new Date(value);

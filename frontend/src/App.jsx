@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import AppLayout from "./components/layout/AppLayout.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
+import Archive from "./pages/Archive.jsx";
 import NotFound from "./pages/NotFound.jsx";
 
 export default function App() {
@@ -16,7 +17,7 @@ export default function App() {
           <Route path="/today" element={<Dashboard />} />
           <Route path="/upcoming" element={<Dashboard />} />
           <Route path="/completed" element={<Dashboard />} />
-          <Route path="/archived" element={<Dashboard />} />
+          <Route path="/archived" element={<Archive />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

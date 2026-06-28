@@ -1,5 +1,33 @@
 import mongoose from "mongoose";
 
+const activitySchema = new mongoose.Schema(
+  {
+    action: {
+      type: String,
+      required: true,
+      enum: [
+        "created",
+        "updated",
+        "completed",
+        "reopened",
+        "priority_changed",
+        "category_changed",
+        "status_changed",
+        "archived",
+        "restored",
+        "deleted",
+        "notes_updated",
+      ],
+    },
+    field: { type: String, default: null },
+    previousValue: { type: mongoose.Schema.Types.Mixed, default: null },
+    newValue: { type: mongoose.Schema.Types.Mixed, default: null },
+    performedBy: { type: String, default: "you" },
+    timestamp: { type: Date, default: Date.now },
+  },
+  { _id: true }
+);
+
 const taskSchema = new mongoose.Schema(
   {
     title: {
@@ -31,14 +59,19 @@ const taskSchema = new mongoose.Schema(
       enum: ["Pending", "In Progress", "Completed"],
       default: "Pending",
     },
-    dueDate: {
-      type: Date,
-      default: null,
+    dueDate: { type: Date, default: null },
+    notes: {
+      type: String,
+      default: "",
+      maxlength: [4000, "Notes must be at most 4000 characters"],
     },
+    isArchived: { type: Boolean, default: false, index: true },
+    activity: { type: [activitySchema], default: [] },
   },
   { timestamps: true }
 );
 
 taskSchema.index({ createdAt: -1 });
+taskSchema.index({ isArchived: 1, createdAt: -1 });
 
 export default mongoose.model("Task", taskSchema);

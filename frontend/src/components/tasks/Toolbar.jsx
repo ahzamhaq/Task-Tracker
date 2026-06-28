@@ -7,7 +7,9 @@ const SORTS = [
   { value: "oldest", label: "Oldest" },
   { value: "due", label: "Due date" },
   { value: "priority", label: "Priority" },
-  { value: "title", label: "Title" },
+  { value: "title", label: "Alphabetical" },
+  { value: "completed-first", label: "Completed first" },
+  { value: "pending-first", label: "Pending first" },
 ];
 
 const STATUSES = ["Pending", "In Progress", "Completed"];

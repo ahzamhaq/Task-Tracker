@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import AnimatedNumber from "../ui/AnimatedNumber.jsx";
 
 const toneStyles = {
   brand: "text-brand bg-brand/10",
@@ -29,7 +30,7 @@ export default function StatCard({
         <span className="text-[11.5px] font-medium text-muted-2">{label}</span>
       </div>
       <div className="mt-3.5 text-[26px] font-semibold leading-none tracking-tight tabular-nums">
-        {value}
+        <AnimatedNumber value={value} />
       </div>
       {subtitle && (
         <div className="mt-1.5 text-[12px] text-muted">{subtitle}</div>

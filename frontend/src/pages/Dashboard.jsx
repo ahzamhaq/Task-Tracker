@@ -17,21 +17,48 @@ import TaskCard from "../components/tasks/TaskCard.jsx";
 import TaskForm from "../components/tasks/TaskForm.jsx";
 import ConfirmDialog from "../components/tasks/ConfirmDialog.jsx";
 import DashboardHeader from "../components/tasks/DashboardHeader.jsx";
+import TaskDetailsDrawer from "../components/tasks/TaskDetailsDrawer.jsx";
 import { useTasks } from "../context/TaskContext.jsx";
 import { useTaskStats } from "../hooks/useTaskStats.js";
 import { useSearch } from "../hooks/useSearch.js";
+import { useDebounce } from "../hooks/useDebounce.js";
 
 const priorityRank = { High: 3, Medium: 2, Low: 1 };
+const statusRank = { Pending: 0, "In Progress": 1, Completed: 2 };
 
-const isToday = (value) => {
-  if (!value) return false;
-  const d = new Date(value);
-  const n = new Date();
-  return (
-    d.getFullYear() === n.getFullYear() &&
-    d.getMonth() === n.getMonth() &&
-    d.getDate() === n.getDate()
-  );
+const sortTasks = (tasks, sort) => {
+  const arr = [...tasks];
+  switch (sort) {
+    case "oldest":
+      return arr.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    case "due":
+      return arr.sort((a, b) => {
+        if (!a.dueDate) return 1;
+        if (!b.dueDate) return -1;
+        return new Date(a.dueDate) - new Date(b.dueDate);
+      });
+    case "priority":
+      return arr.sort(
+        (a, b) => (priorityRank[b.priority] || 0) - (priorityRank[a.priority] || 0)
+      );
+    case "title":
+      return arr.sort((a, b) => a.title.localeCompare(b.title));
+    case "completed-first":
+      return arr.sort(
+        (a, b) =>
+          (statusRank[b.status] ?? 0) - (statusRank[a.status] ?? 0) ||
+          new Date(b.createdAt) - new Date(a.createdAt)
+      );
+    case "pending-first":
+      return arr.sort(
+        (a, b) =>
+          (statusRank[a.status] ?? 0) - (statusRank[b.status] ?? 0) ||
+          new Date(b.createdAt) - new Date(a.createdAt)
+      );
+    case "newest":
+    default:
+      return arr.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  }
 };
 
 export default function Dashboard() {
@@ -43,9 +70,11 @@ export default function Dashboard() {
     createTask,
     updateTask,
     toggleComplete,
+    archiveTask,
     removeTask,
   } = useTasks();
   const { search: globalSearch, setSearch: setGlobalSearch } = useSearch();
+  const debouncedSearch = useDebounce(globalSearch, 300);
 
   const [sort, setSort] = useState("newest");
   const [filters, setFilters] = useState({
@@ -57,8 +86,9 @@ export default function Dashboard() {
   const [editing, setEditing] = useState(null);
   const [confirm, setConfirm] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [selected, setSelected] = useState(null);
 
-  const effectiveSearch = globalSearch.trim().toLowerCase();
+  const effectiveSearch = debouncedSearch.trim().toLowerCase();
 
   useEffect(() => {
     const handler = () => {
@@ -68,6 +98,13 @@ export default function Dashboard() {
     window.addEventListener("taskflow:compose", handler);
     return () => window.removeEventListener("taskflow:compose", handler);
   }, []);
+
+  // Keep selected task in sync with latest task list state (so drawer reflects edits)
+  useEffect(() => {
+    if (!selected) return;
+    const latest = tasks.find((t) => t._id === selected._id);
+    if (latest && latest !== selected) setSelected(latest);
+  }, [tasks, selected]);
 
   const categories = useMemo(() => {
     const set = new Set();
@@ -86,31 +123,10 @@ export default function Dashboard() {
       }
       return true;
     });
-
-    return [...filtered].sort((a, b) => {
-      switch (sort) {
-        case "oldest":
-          return new Date(a.createdAt) - new Date(b.createdAt);
-        case "due":
-          if (!a.dueDate) return 1;
-          if (!b.dueDate) return -1;
-          return new Date(a.dueDate) - new Date(b.dueDate);
-        case "priority":
-          return (priorityRank[b.priority] || 0) - (priorityRank[a.priority] || 0);
-        case "title":
-          return a.title.localeCompare(b.title);
-        case "newest":
-        default:
-          return new Date(b.createdAt) - new Date(a.createdAt);
-      }
-    });
+    return sortTasks(filtered, sort);
   }, [tasks, filters, effectiveSearch, sort]);
 
   const stats = useTaskStats(tasks);
-  const dueToday = useMemo(
-    () => tasks.filter((t) => isToday(t.dueDate) && t.status !== "Completed").length,
-    [tasks]
-  );
 
   const openCreate = () => {
     setEditing(null);
@@ -135,7 +151,12 @@ export default function Dashboard() {
   };
 
   const handleStatus = async (task, status) => {
-    await updateTask(task._id, { status });
+    await updateTask(task._id, { status }, { silent: true });
+  };
+
+  const handleArchive = async (task) => {
+    if (selected?._id === task._id) setSelected(null);
+    await archiveTask(task);
   };
 
   const handleDelete = async () => {
@@ -143,6 +164,7 @@ export default function Dashboard() {
     setDeleting(true);
     try {
       await removeTask(confirm._id);
+      if (selected?._id === confirm._id) setSelected(null);
       setConfirm(null);
     } finally {
       setDeleting(false);
@@ -151,10 +173,11 @@ export default function Dashboard() {
 
   const hasAnyTasks = tasks.length > 0;
   const isFilteredEmpty = hasAnyTasks && visible.length === 0;
+  const isSearching = !!effectiveSearch;
 
   return (
     <div>
-      <DashboardHeader stats={stats} dueToday={dueToday} />
+      <DashboardHeader stats={stats} dueToday={stats.dueToday} />
 
       <section className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         {loading ? (
@@ -166,7 +189,7 @@ export default function Dashboard() {
               tone="brand"
               label="Total Tasks"
               value={stats.total}
-              subtitle={`+${Math.min(stats.total, 6)} this week`}
+              subtitle={stats.overdue ? `${stats.overdue} overdue` : "all time"}
             />
             <StatCard
               icon={FiClock}
@@ -229,8 +252,13 @@ export default function Dashboard() {
         <EmptyState action="Create Task" onAction={openCreate} />
       ) : isFilteredEmpty ? (
         <EmptyState
-          title="No matching tasks"
-          subtitle="Try adjusting your search or filters."
+          illustration={isSearching ? "search" : "tasks"}
+          title={isSearching ? "No results found" : "No matching tasks"}
+          subtitle={
+            isSearching
+              ? "Try a different keyword or clear your filters."
+              : "Try adjusting your filters."
+          }
         />
       ) : (
         <div className="space-y-2.5">
@@ -239,8 +267,9 @@ export default function Dashboard() {
               <TaskCard
                 key={task._id}
                 task={task}
+                onOpen={setSelected}
                 onEdit={openEdit}
-                onDelete={(t) => setConfirm(t)}
+                onDelete={(t) => handleArchive(t)}
                 onToggle={toggleComplete}
                 onStatus={handleStatus}
               />
@@ -275,6 +304,22 @@ export default function Dashboard() {
         loading={deleting}
         onConfirm={handleDelete}
         onClose={() => !deleting && setConfirm(null)}
+      />
+
+      <TaskDetailsDrawer
+        task={selected}
+        open={!!selected}
+        onClose={() => setSelected(null)}
+        onEdit={(t) => {
+          setSelected(null);
+          openEdit(t);
+        }}
+        onArchive={(t) => handleArchive(t)}
+        onDelete={(t) => setConfirm(t)}
+        onSaveNotes={async (notes) => {
+          if (!selected) return;
+          await updateTask(selected._id, { notes }, { silent: true });
+        }}
       />
     </div>
   );

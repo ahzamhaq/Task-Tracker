@@ -20,9 +20,23 @@ const STATUS_PILL = {
   Completed: "text-success bg-success/15 hover:bg-success/25",
 };
 
-export default function TaskCard({ task, onEdit, onDelete, onToggle, onStatus }) {
+export default function TaskCard({
+  task,
+  onEdit,
+  onDelete,
+  onToggle,
+  onStatus,
+  onOpen,
+}) {
   const due = dueState(task.dueDate);
   const done = task.status === "Completed";
+
+  const handleRowClick = (e) => {
+    // ignore clicks on interactive children
+    if (e.target.closest("button, a, [role='menu'], input, select, textarea"))
+      return;
+    onOpen?.(task);
+  };
 
   return (
     <motion.article
@@ -32,7 +46,8 @@ export default function TaskCard({ task, onEdit, onDelete, onToggle, onStatus })
       exit={{ opacity: 0, y: -4 }}
       transition={{ duration: 0.2, ease: "easeOut" }}
       whileHover={{ y: -2 }}
-      className="group relative overflow-hidden rounded-card border border-app glass shadow-glass transition-shadow hover:shadow-glass-hover"
+      onClick={handleRowClick}
+      className="group relative cursor-pointer overflow-hidden rounded-card border border-app glass shadow-glass transition-shadow hover:shadow-glass-hover"
     >
       <span
         aria-hidden="true"
@@ -114,7 +129,8 @@ export default function TaskCard({ task, onEdit, onDelete, onToggle, onStatus })
           <button
             type="button"
             onClick={() => onDelete?.(task)}
-            title="Delete"
+            title="Archive"
+            aria-label="Archive task"
             className="rounded-md p-1.5 text-muted opacity-0 transition group-hover:opacity-100 hover:bg-danger/10 hover:text-danger focus-visible:opacity-100"
           >
             <FiTrash2 className="h-3.5 w-3.5" />
