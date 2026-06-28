@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { FiCalendar, FiCheck, FiEdit2, FiMoreHorizontal, FiTrash2 } from "react-icons/fi";
 import { useEffect, useRef, useState } from "react";
-import Badge, { categoryTone, priorityTone } from "../ui/Badge.jsx";
+import Badge, { priorityTone } from "../ui/Badge.jsx";
 import { dueState } from "../../utils/format.js";
 
 const PRIORITY_BORDER = {
@@ -87,9 +87,6 @@ export default function TaskCard({
         </div>
 
         <div className="hidden items-center gap-1.5 md:flex">
-          {task.category && (
-            <Badge tone={categoryTone(task.category)}>{task.category}</Badge>
-          )}
           <Badge tone={priorityTone(task.priority)}>{task.priority}</Badge>
         </div>
 
@@ -146,9 +143,6 @@ export default function TaskCard({
       </div>
 
       <div className="flex flex-wrap items-center gap-1.5 px-5 pb-3 md:hidden">
-        {task.category && (
-          <Badge tone={categoryTone(task.category)}>{task.category}</Badge>
-        )}
         <Badge tone={priorityTone(task.priority)}>{task.priority}</Badge>
         {due && (
           <span

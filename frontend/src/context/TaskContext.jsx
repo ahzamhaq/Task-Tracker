@@ -198,6 +198,33 @@ export const TaskProvider = ({ children }) => {
     }
   }, []);
 
+  const clearArchived = useCallback(async () => {
+    const snapshot = state.archived;
+    if (snapshot.length === 0) return 0;
+    dispatch({ type: "set-archived", payload: [] });
+    let failed = 0;
+    await Promise.all(
+      snapshot.map((t) =>
+        taskService.remove(t._id).catch(() => {
+          failed += 1;
+        })
+      )
+    );
+    if (failed > 0) {
+      // best-effort: refetch authoritative archive list
+      try {
+        const data = await taskService.list({ archived: "true" });
+        dispatch({ type: "set-archived", payload: data });
+      } catch {
+        /* noop */
+      }
+      toast.error(`${failed} task(s) couldn't be deleted`);
+    } else {
+      toast.success(`Cleared ${snapshot.length} archived task(s)`);
+    }
+    return snapshot.length - failed;
+  }, [state.archived]);
+
   const removeTask = useCallback(
     async (id) => {
       const list = [...state.tasks, ...state.archived];
@@ -234,6 +261,7 @@ export const TaskProvider = ({ children }) => {
       archiveTask,
       restoreTask,
       removeTask,
+      clearArchived,
     }),
     [
       state,
@@ -245,6 +273,7 @@ export const TaskProvider = ({ children }) => {
       archiveTask,
       restoreTask,
       removeTask,
+      clearArchived,
     ]
   );
 

@@ -91,13 +91,6 @@ export default function TaskForm({ initial, onSubmit, onCancel }) {
       </FieldShell>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <FieldShell label="Category">
-          <Input
-            placeholder="General"
-            {...register("category", { maxLength: 40 })}
-          />
-        </FieldShell>
-
         <FieldShell label="Due date">
           <Input type="date" {...register("dueDate")} />
         </FieldShell>

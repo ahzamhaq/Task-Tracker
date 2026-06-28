@@ -4,30 +4,20 @@ import {
   FiArchive,
   FiCalendar,
   FiCheckCircle,
-  FiClock,
   FiGrid,
-  FiList,
-  FiPlus,
   FiSettings,
   FiSun,
   FiX,
 } from "react-icons/fi";
 import Logo from "./Logo.jsx";
+import ProductivityWidget from "./ProductivityWidget.jsx";
 
 const NAV = [
   { to: "/dashboard", label: "Dashboard", icon: FiGrid },
-  { to: "/tasks", label: "My Tasks", icon: FiList },
   { to: "/today", label: "Today", icon: FiSun },
   { to: "/upcoming", label: "Upcoming", icon: FiCalendar },
   { to: "/completed", label: "Completed", icon: FiCheckCircle },
   { to: "/archived", label: "Archived", icon: FiArchive },
-];
-
-const PROJECTS = [
-  { id: "work", label: "Work", color: "#6366F1" },
-  { id: "college", label: "College", color: "#A855F7" },
-  { id: "personal", label: "Personal", color: "#22C55E" },
-  { id: "shopping", label: "Shopping", color: "#F59E0B" },
 ];
 
 function NavItem({ to, icon: Icon, label, onNavigate }) {
@@ -61,7 +51,7 @@ function NavItem({ to, icon: Icon, label, onNavigate }) {
   );
 }
 
-export default function Sidebar({ open, onClose }) {
+export default function Sidebar({ open, onClose, onOpenSettings }) {
   const handleNavigate = () => onClose?.();
 
   const content = (
@@ -84,61 +74,17 @@ export default function Sidebar({ open, onClose }) {
             <NavItem key={item.to} {...item} onNavigate={handleNavigate} />
           ))}
         </div>
-
-        <div className="mt-7 px-3">
-          <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-2">
-            Projects
-          </div>
-        </div>
-        <div className="space-y-0.5">
-          {PROJECTS.map((p) => (
-            <button
-              key={p.id}
-              type="button"
-              className="group flex w-full items-center gap-3 rounded-btn px-3 py-2 text-[13.5px] font-medium text-muted transition hover:bg-[color:var(--c-border)] hover:text-[color:var(--c-ink)]"
-            >
-              <span
-                className="h-2 w-2 rounded-full"
-                style={{ backgroundColor: p.color }}
-              />
-              {p.label}
-            </button>
-          ))}
-          <button
-            type="button"
-            className="flex w-full items-center gap-3 rounded-btn px-3 py-2 text-[13.5px] font-medium text-muted-2 transition hover:text-[color:var(--c-ink)]"
-          >
-            <FiPlus className="h-3.5 w-3.5" />
-            New Project
-          </button>
-        </div>
       </nav>
 
       <div className="px-4 pb-3">
-        <div className="glass rounded-card p-3.5">
-          <div className="mb-2 flex items-center justify-between">
-            <span className="text-[12.5px] font-medium">Storage</span>
-            <span className="text-[11px] text-muted">45% used</span>
-          </div>
-          <div className="h-1.5 overflow-hidden rounded-full bg-[color:var(--c-border)]">
-            <div
-              className="h-full rounded-full bg-brand"
-              style={{ width: "45%" }}
-            />
-          </div>
-          <div className="mt-2 flex items-center justify-between">
-            <span className="text-[11px] text-muted-2">2.3 GB of 5 GB</span>
-            <button
-              type="button"
-              className="rounded-md px-2 py-0.5 text-[11px] font-medium text-brand transition hover:bg-brand/10"
-            >
-              Upgrade
-            </button>
-          </div>
-        </div>
+        <ProductivityWidget />
 
         <button
           type="button"
+          onClick={() => {
+            onOpenSettings?.();
+            onClose?.();
+          }}
           className="mt-2 flex w-full items-center gap-3 rounded-btn px-3 py-2 text-[13.5px] font-medium text-muted transition hover:bg-[color:var(--c-border)] hover:text-[color:var(--c-ink)]"
         >
           <FiSettings className="h-[15px] w-[15px]" />

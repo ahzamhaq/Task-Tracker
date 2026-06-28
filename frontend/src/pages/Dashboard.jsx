@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import {
   FiAlertCircle,
@@ -16,6 +17,7 @@ import Toolbar from "../components/tasks/Toolbar.jsx";
 import TaskCard from "../components/tasks/TaskCard.jsx";
 import TaskForm from "../components/tasks/TaskForm.jsx";
 import ConfirmDialog from "../components/tasks/ConfirmDialog.jsx";
+import FilterMenu from "../components/tasks/FilterMenu.jsx";
 import DashboardHeader from "../components/tasks/DashboardHeader.jsx";
 import TaskDetailsDrawer from "../components/tasks/TaskDetailsDrawer.jsx";
 import { useTasks } from "../context/TaskContext.jsx";
@@ -25,6 +27,44 @@ import { useDebounce } from "../hooks/useDebounce.js";
 
 const priorityRank = { High: 3, Medium: 2, Low: 1 };
 const statusRank = { Pending: 0, "In Progress": 1, Completed: 2 };
+
+const SCOPES = {
+  "/today": {
+    title: "Today",
+    subtitle: "Tasks due today.",
+    predicate: (t) => isToday(t.dueDate) && t.status !== "Completed",
+  },
+  "/upcoming": {
+    title: "Upcoming",
+    subtitle: "Tasks due after today.",
+    predicate: (t) => isFuture(t.dueDate) && t.status !== "Completed",
+  },
+  "/completed": {
+    title: "Completed",
+    subtitle: "Tasks you've finished.",
+    predicate: (t) => t.status === "Completed",
+  },
+};
+
+function isToday(value) {
+  if (!value) return false;
+  const d = new Date(value);
+  const n = new Date();
+  return (
+    d.getFullYear() === n.getFullYear() &&
+    d.getMonth() === n.getMonth() &&
+    d.getDate() === n.getDate()
+  );
+}
+
+function isFuture(value) {
+  if (!value) return false;
+  const d = new Date(value);
+  const n = new Date();
+  n.setHours(0, 0, 0, 0);
+  n.setDate(n.getDate() + 1);
+  return d.getTime() >= n.getTime();
+}
 
 const sortTasks = (tasks, sort) => {
   const arr = [...tasks];
@@ -75,12 +115,13 @@ export default function Dashboard() {
   } = useTasks();
   const { search: globalSearch, setSearch: setGlobalSearch } = useSearch();
   const debouncedSearch = useDebounce(globalSearch, 300);
+  const location = useLocation();
+  const scope = SCOPES[location.pathname] || null;
 
   const [sort, setSort] = useState("newest");
   const [filters, setFilters] = useState({
     status: null,
     priority: null,
-    category: null,
   });
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -106,25 +147,19 @@ export default function Dashboard() {
     if (latest && latest !== selected) setSelected(latest);
   }, [tasks, selected]);
 
-  const categories = useMemo(() => {
-    const set = new Set();
-    tasks.forEach((t) => t.category && set.add(t.category));
-    return [...set].sort();
-  }, [tasks]);
-
   const visible = useMemo(() => {
     const filtered = tasks.filter((t) => {
+      if (scope && !scope.predicate(t)) return false;
       if (filters.status && t.status !== filters.status) return false;
       if (filters.priority && t.priority !== filters.priority) return false;
-      if (filters.category && t.category !== filters.category) return false;
       if (effectiveSearch) {
-        const hay = `${t.title} ${t.description} ${t.category}`.toLowerCase();
+        const hay = `${t.title} ${t.description}`.toLowerCase();
         if (!hay.includes(effectiveSearch)) return false;
       }
       return true;
     });
     return sortTasks(filtered, sort);
-  }, [tasks, filters, effectiveSearch, sort]);
+  }, [tasks, scope, filters, effectiveSearch, sort]);
 
   const stats = useTaskStats(tasks);
 
@@ -171,13 +206,26 @@ export default function Dashboard() {
     }
   };
 
-  const hasAnyTasks = tasks.length > 0;
+  const scopedTasks = useMemo(
+    () => (scope ? tasks.filter(scope.predicate) : tasks),
+    [tasks, scope]
+  );
+  const hasAnyTasks = scopedTasks.length > 0;
   const isFilteredEmpty = hasAnyTasks && visible.length === 0;
   const isSearching = !!effectiveSearch;
 
   return (
     <div>
-      <DashboardHeader stats={stats} dueToday={stats.dueToday} />
+      {scope ? (
+        <section className="mb-7">
+          <h1 className="text-[24px] font-semibold tracking-tight sm:text-[28px]">
+            {scope.title}
+          </h1>
+          <p className="mt-1 text-[13.5px] text-muted">{scope.subtitle}</p>
+        </section>
+      ) : (
+        <DashboardHeader stats={stats} dueToday={stats.dueToday} />
+      )}
 
       <section className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         {loading ? (
@@ -216,16 +264,26 @@ export default function Dashboard() {
         )}
       </section>
 
-      <Toolbar
-        search={globalSearch}
-        onSearch={setGlobalSearch}
-        sort={sort}
-        onSort={setSort}
-        filters={filters}
-        onFilters={setFilters}
-        categories={categories}
-        onCreate={openCreate}
-      />
+      {scope ? (
+        <div className="mb-5 flex items-center justify-end">
+          <FilterMenu
+            filters={filters}
+            onFilters={setFilters}
+            sort={sort}
+            onSort={setSort}
+          />
+        </div>
+      ) : (
+        <Toolbar
+          search={globalSearch}
+          onSearch={setGlobalSearch}
+          sort={sort}
+          onSort={setSort}
+          filters={filters}
+          onFilters={setFilters}
+          onCreate={openCreate}
+        />
+      )}
 
       {error && !loading && (
         <div className="glass-card mb-4 flex items-start gap-3 border-danger/30 p-4">
@@ -249,7 +307,29 @@ export default function Dashboard() {
           ))}
         </div>
       ) : !hasAnyTasks ? (
-        <EmptyState action="Create Task" onAction={openCreate} />
+        scope ? (
+          <EmptyState
+            illustration={scope === SCOPES["/completed"] ? "archive" : "tasks"}
+            title={
+              scope === SCOPES["/today"]
+                ? "Nothing due today"
+                : scope === SCOPES["/upcoming"]
+                ? "No upcoming tasks"
+                : scope === SCOPES["/completed"]
+                ? "No completed tasks yet"
+                : "No tasks yet"
+            }
+            subtitle={
+              scope === SCOPES["/completed"]
+                ? "Mark a task as complete and it'll appear here."
+                : "Enjoy the calm, or add something new."
+            }
+            action={scope !== SCOPES["/completed"] ? "Create Task" : undefined}
+            onAction={openCreate}
+          />
+        ) : (
+          <EmptyState action="Create Task" onAction={openCreate} />
+        )
       ) : isFilteredEmpty ? (
         <EmptyState
           illustration={isSearching ? "search" : "tasks"}

@@ -3,23 +3,51 @@ import { Toaster } from "react-hot-toast";
 import AppLayout from "./components/layout/AppLayout.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Archive from "./pages/Archive.jsx";
-import NotFound from "./pages/NotFound.jsx";
+import Landing from "./pages/Landing.jsx";
+import Login from "./pages/Login.jsx";
+import { Protected, PublicOnly } from "./components/auth/Protected.jsx";
+import { TaskProvider } from "./context/TaskContext.jsx";
+
+function DashboardShell() {
+  return (
+    <Protected>
+      <TaskProvider>
+        <AppLayout />
+      </TaskProvider>
+    </Protected>
+  );
+}
 
 export default function App() {
   return (
     <>
       <Routes>
-        <Route element={<AppLayout />}>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route
+          path="/"
+          element={
+            <PublicOnly>
+              <Landing />
+            </PublicOnly>
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            <PublicOnly>
+              <Login />
+            </PublicOnly>
+          }
+        />
+
+        <Route element={<DashboardShell />}>
           <Route path="/dashboard" element={<Dashboard />} />
-          {/* Sidebar shortcuts reuse the same view, scoped via search/filters */}
-          <Route path="/tasks" element={<Dashboard />} />
           <Route path="/today" element={<Dashboard />} />
           <Route path="/upcoming" element={<Dashboard />} />
           <Route path="/completed" element={<Dashboard />} />
           <Route path="/archived" element={<Archive />} />
-          <Route path="*" element={<NotFound />} />
         </Route>
+
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <Toaster
         position="bottom-right"

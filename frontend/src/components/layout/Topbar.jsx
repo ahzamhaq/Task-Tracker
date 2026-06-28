@@ -1,28 +1,16 @@
-import { useEffect, useRef } from "react";
-import { FiBell, FiImage, FiMenu, FiMoon, FiSearch, FiSun } from "react-icons/fi";
+import { FiImage, FiMenu, FiMoon, FiSearch, FiSun } from "react-icons/fi";
 import { useTheme } from "../../context/ThemeContext.jsx";
+import NotificationCenter from "./NotificationCenter.jsx";
+import ProfileMenu from "./ProfileMenu.jsx";
 
 export default function Topbar({
   search,
   onSearch,
   onOpenBackground,
   onOpenSidebar,
+  onOpenSettings,
 }) {
   const { theme, toggle } = useTheme();
-  const inputRef = useRef(null);
-
-  useEffect(() => {
-    const onKey = (e) => {
-      const mod = e.metaKey || e.ctrlKey;
-      if (mod && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        inputRef.current?.focus();
-        inputRef.current?.select();
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
 
   return (
     <header className="sticky top-0 z-20 border-b border-app glass">
@@ -39,7 +27,6 @@ export default function Topbar({
         <div className="relative w-full max-w-[520px]">
           <FiSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
           <input
-            ref={inputRef}
             type="text"
             value={search}
             onChange={(e) => onSearch(e.target.value)}
@@ -83,18 +70,9 @@ export default function Topbar({
             )}
           </button>
 
-          <button
-            type="button"
-            aria-label="Notifications"
-            className="relative inline-flex h-9 w-9 items-center justify-center rounded-btn text-muted transition hover:bg-[color:var(--c-border)] hover:text-[color:var(--c-ink)]"
-          >
-            <FiBell className="h-4 w-4" />
-            <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-brand" />
-          </button>
+          <NotificationCenter />
 
-          <div className="ml-1 flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-hover text-[12px] font-semibold text-white ring-2 ring-[color:var(--c-bg)]">
-            BM
-          </div>
+          <ProfileMenu onOpenSettings={onOpenSettings} />
         </div>
       </div>
     </header>

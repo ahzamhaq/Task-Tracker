@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { FiArchive, FiCalendar, FiRotateCcw, FiTrash2 } from "react-icons/fi";
-import Badge, { categoryTone, priorityTone } from "../components/ui/Badge.jsx";
+import Badge, { priorityTone } from "../components/ui/Badge.jsx";
 import Button from "../components/ui/Button.jsx";
 import EmptyState from "../components/ui/EmptyState.jsx";
 import { SkeletonRow } from "../components/ui/Skeleton.jsx";
@@ -116,11 +116,6 @@ export default function Archive() {
                     </div>
 
                     <div className="hidden items-center gap-1.5 md:flex">
-                      {task.category && (
-                        <Badge tone={categoryTone(task.category)}>
-                          {task.category}
-                        </Badge>
-                      )}
                       <Badge tone={priorityTone(task.priority)}>
                         {task.priority}
                       </Badge>

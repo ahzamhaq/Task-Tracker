@@ -16,7 +16,7 @@ import {
   FiTrash2,
   FiX,
 } from "react-icons/fi";
-import Badge, { categoryTone, priorityTone, statusTone } from "../ui/Badge.jsx";
+import Badge, { priorityTone, statusTone } from "../ui/Badge.jsx";
 import Button from "../ui/Button.jsx";
 import { Textarea } from "../ui/Field.jsx";
 import { formatDate, relativeTime } from "../../utils/format.js";
@@ -112,11 +112,6 @@ export default function TaskDetailsDrawer({
                     {task.status}
                   </Badge>
                   <Badge tone={priorityTone(task.priority)}>{task.priority}</Badge>
-                  {task.category && (
-                    <Badge tone={categoryTone(task.category)}>
-                      {task.category}
-                    </Badge>
-                  )}
                 </div>
                 <h2 className="truncate text-[16px] font-semibold tracking-tight">
                   {task.title}
@@ -142,7 +137,6 @@ export default function TaskDetailsDrawer({
               <dl className="mb-6 grid grid-cols-2 gap-x-4 gap-y-3 text-[12.5px]">
                 <Meta icon={FiTag} label="Status" value={task.status} />
                 <Meta icon={FiFlag} label="Priority" value={task.priority} />
-                <Meta icon={FiFolder} label="Category" value={task.category} />
                 <Meta
                   icon={FiCalendar}
                   label="Due"

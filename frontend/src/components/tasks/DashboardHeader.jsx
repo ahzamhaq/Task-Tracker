@@ -1,15 +1,20 @@
 import ProgressRing from "../ui/ProgressRing.jsx";
 import AnimatedNumber from "../ui/AnimatedNumber.jsx";
 import { greeting } from "../../utils/format.js";
+import { useAuth } from "../../context/AuthContext.jsx";
 
 export default function DashboardHeader({ stats, dueToday }) {
   const remaining = stats.pending + stats.inProgress;
+  const { user } = useAuth();
+  const firstName = (user?.userName || "").split(" ")[0];
 
   return (
     <section className="mb-7 flex flex-col gap-5 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <h1 className="flex items-center gap-2 text-[24px] font-semibold tracking-tight sm:text-[28px]">
-          {greeting()} <span className="text-[22px]">👋</span>
+          {greeting()}
+          {firstName && <span>, {firstName}</span>}
+          <span className="text-[22px]">👋</span>
         </h1>
         <p className="mt-1 text-[13.5px] text-muted">
           Let's make today productive.

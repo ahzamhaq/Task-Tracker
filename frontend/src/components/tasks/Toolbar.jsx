@@ -22,7 +22,6 @@ export default function Toolbar({
   onSort,
   filters,
   onFilters,
-  categories = [],
   onCreate,
 }) {
   return (
@@ -58,14 +57,6 @@ export default function Toolbar({
           value={filters.priority || ""}
           onChange={(v) => onFilters({ ...filters, priority: v || null })}
           options={[{ value: "", label: "Priority" }, ...PRIORITIES.map((p) => ({ value: p, label: p }))]}
-        />
-        <Compact
-          value={filters.category || ""}
-          onChange={(v) => onFilters({ ...filters, category: v || null })}
-          options={[
-            { value: "", label: "Category" },
-            ...categories.map((c) => ({ value: c, label: c })),
-          ]}
         />
         <Compact
           value={sort}
