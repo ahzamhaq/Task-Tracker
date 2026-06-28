@@ -12,7 +12,7 @@ const TRACKED_FIELDS = [
 
 const buildQuery = (req) => {
   const { status, priority, category, search, archived } = req.query;
-  const query = {};
+  const query = { ownerEmail: req.ownerEmail };
   query.isArchived = archived === "true";
   if (status) query.status = status;
   if (priority) query.priority = priority;
@@ -65,6 +65,9 @@ const buildDiffActivity = (existing, payload) => {
   return entries;
 };
 
+const findOwned = (req) =>
+  Task.findOne({ _id: req.params.id, ownerEmail: req.ownerEmail });
+
 export const listTasks = asyncHandler(async (req, res) => {
   const query = buildQuery(req);
   const sort = sortMap[req.query.sort] || sortMap.newest;
@@ -73,7 +76,7 @@ export const listTasks = asyncHandler(async (req, res) => {
 });
 
 export const getTask = asyncHandler(async (req, res) => {
-  const task = await Task.findById(req.params.id);
+  const task = await findOwned(req);
   if (!task) throw new ApiError(404, "Task not found");
   res.json(task);
 });
@@ -82,20 +85,23 @@ export const createTask = asyncHandler(async (req, res) => {
   const body = { ...req.body };
   delete body.activity;
   delete body.isArchived;
+  delete body.ownerEmail;
   const task = await Task.create({
     ...body,
+    ownerEmail: req.ownerEmail,
     activity: [{ action: "created", newValue: body.title }],
   });
   res.status(201).json(task);
 });
 
 export const updateTask = asyncHandler(async (req, res) => {
-  const existing = await Task.findById(req.params.id);
+  const existing = await findOwned(req);
   if (!existing) throw new ApiError(404, "Task not found");
 
   const body = { ...req.body };
   delete body.activity;
   delete body.isArchived;
+  delete body.ownerEmail;
 
   const entries = buildDiffActivity(existing, body);
   if ("notes" in body && body.notes !== existing.notes) {
@@ -109,7 +115,7 @@ export const updateTask = asyncHandler(async (req, res) => {
 });
 
 export const archiveTask = asyncHandler(async (req, res) => {
-  const task = await Task.findById(req.params.id);
+  const task = await findOwned(req);
   if (!task) throw new ApiError(404, "Task not found");
   if (!task.isArchived) {
     task.isArchived = true;
@@ -120,7 +126,7 @@ export const archiveTask = asyncHandler(async (req, res) => {
 });
 
 export const restoreTask = asyncHandler(async (req, res) => {
-  const task = await Task.findById(req.params.id);
+  const task = await findOwned(req);
   if (!task) throw new ApiError(404, "Task not found");
   if (task.isArchived) {
     task.isArchived = false;
@@ -131,7 +137,10 @@ export const restoreTask = asyncHandler(async (req, res) => {
 });
 
 export const deleteTask = asyncHandler(async (req, res) => {
-  const task = await Task.findByIdAndDelete(req.params.id);
+  const task = await Task.findOneAndDelete({
+    _id: req.params.id,
+    ownerEmail: req.ownerEmail,
+  });
   if (!task) throw new ApiError(404, "Task not found");
   res.json({ message: "Task removed", id: req.params.id });
 });

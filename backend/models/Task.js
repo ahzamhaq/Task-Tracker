@@ -30,6 +30,13 @@ const activitySchema = new mongoose.Schema(
 
 const taskSchema = new mongoose.Schema(
   {
+    ownerEmail: {
+      type: String,
+      required: true,
+      lowercase: true,
+      trim: true,
+      index: true,
+    },
     title: {
       type: String,
       required: [true, "Title is required"],
@@ -71,7 +78,7 @@ const taskSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-taskSchema.index({ createdAt: -1 });
-taskSchema.index({ isArchived: 1, createdAt: -1 });
+taskSchema.index({ ownerEmail: 1, createdAt: -1 });
+taskSchema.index({ ownerEmail: 1, isArchived: 1, createdAt: -1 });
 
 export default mongoose.model("Task", taskSchema);

@@ -11,6 +11,7 @@ app.use(
   cors({
     origin: process.env.CLIENT_ORIGIN?.split(",") || "*",
     credentials: true,
+    allowedHeaders: ["Content-Type", "X-User-Email"],
   })
 );
 app.use(express.json({ limit: "1mb" }));

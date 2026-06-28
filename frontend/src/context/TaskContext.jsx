@@ -8,6 +8,7 @@ import {
 } from "react";
 import toast from "react-hot-toast";
 import { taskService } from "../services/taskService.js";
+import { useAuth } from "./AuthContext.jsx";
 
 const TaskContext = createContext(null);
 
@@ -76,6 +77,8 @@ const tempId = () => `temp-${Math.random().toString(36).slice(2, 10)}`;
 
 export const TaskProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
+  const { user } = useAuth();
+  const ownerEmail = user?.userEmail || null;
 
   const fetchTasks = useCallback(async () => {
     dispatch({ type: "loading" });
@@ -99,8 +102,15 @@ export const TaskProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
+    if (!ownerEmail) {
+      dispatch({ type: "loaded", payload: [] });
+      dispatch({ type: "set-archived", payload: [] });
+      return;
+    }
     fetchTasks();
-  }, [fetchTasks]);
+    // Note: archived list is fetched on-demand by the Archive page.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ownerEmail]);
 
   const createTask = useCallback(async (payload) => {
     const id = tempId();
