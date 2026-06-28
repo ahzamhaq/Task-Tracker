@@ -1,18 +1,18 @@
 import { forwardRef } from "react";
 
 const baseInput =
-  "w-full rounded-btn border border-border bg-surface/60 px-3 py-2 text-sm text-ink placeholder:text-muted transition focus:border-brand disabled:opacity-50 [html:not(.dark)_&]:bg-surface-light [html:not(.dark)_&]:border-border-light [html:not(.dark)_&]:text-ink-light";
+  "w-full rounded-btn border border-app bg-[color:var(--c-surface)] px-3 py-2 text-[13.5px] text-[color:var(--c-ink)] placeholder:text-muted-2 transition focus:border-brand/60 disabled:opacity-50";
 
 export function FieldShell({ label, hint, error, required, children }) {
   return (
     <label className="block">
       <div className="mb-1.5 flex items-baseline justify-between">
-        <span className="text-[13px] font-medium text-ink">
+        <span className="text-[12.5px] font-medium">
           {label}
           {required && <span className="ml-0.5 text-danger">*</span>}
         </span>
         {hint && !error && (
-          <span className="text-[11px] text-muted">{hint}</span>
+          <span className="text-[11px] text-muted-2">{hint}</span>
         )}
       </div>
       {children}

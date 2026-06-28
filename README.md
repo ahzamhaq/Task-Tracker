@@ -4,7 +4,7 @@ A production-quality MERN task manager designed in the spirit of Linear, Vercel,
 
 ## Stack
 
-**Frontend** — React (Vite), React Router, Axios, React Hook Form, Tailwind CSS, React Icons, React Hot Toast
+**Frontend** — React (Vite), React Router, Axios, React Hook Form, Tailwind CSS, React Icons, React Hot Toast, Framer Motion
 **Backend** — Node.js, Express, MongoDB, Mongoose, dotenv, cors
 
 ## Project structure

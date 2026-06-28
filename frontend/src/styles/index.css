@@ -4,6 +4,38 @@
 
 :root {
   color-scheme: dark light;
+
+  /* user-tunable background controls (set from JS) */
+  --bg-image: none;
+  --bg-overlay: 0.75;
+  --bg-blur: 0px;
+
+  /* dark theme tokens (default) */
+  --c-bg: #0f172a;
+  --c-bg-soft: #0b1220;
+  --c-surface: rgba(30, 41, 59, 0.65);
+  --c-surface-solid: #1e293b;
+  --c-surface-hover: rgba(30, 41, 59, 0.85);
+  --c-border: rgba(148, 163, 184, 0.14);
+  --c-border-strong: rgba(148, 163, 184, 0.22);
+  --c-ink: #f8fafc;
+  --c-muted: #94a3b8;
+  --c-muted-2: #64748b;
+  --c-overlay: rgba(15, 23, 42, var(--bg-overlay));
+}
+
+html:not(.dark) {
+  --c-bg: #f8fafc;
+  --c-bg-soft: #ffffff;
+  --c-surface: rgba(255, 255, 255, 0.75);
+  --c-surface-solid: #ffffff;
+  --c-surface-hover: rgba(255, 255, 255, 0.92);
+  --c-border: rgba(15, 23, 42, 0.08);
+  --c-border-strong: rgba(15, 23, 42, 0.14);
+  --c-ink: #0f172a;
+  --c-muted: #64748b;
+  --c-muted-2: #94a3b8;
+  --c-overlay: rgba(248, 250, 252, calc(0.05 + var(--bg-overlay) * 0.95));
 }
 
 html,
@@ -13,16 +45,43 @@ body,
 }
 
 body {
-  @apply font-sans antialiased bg-bg text-ink;
+  @apply font-sans antialiased;
+  color: var(--c-ink);
+  background: var(--c-bg);
   font-feature-settings: "cv11", "ss01", "ss03";
   text-rendering: optimizeLegibility;
+  letter-spacing: -0.005em;
 }
 
-html:not(.dark) body {
-  @apply bg-bg-light text-ink-light;
+/* Wallpaper layer: image -> blur -> overlay -> content sits above */
+.app-wallpaper {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background-image: var(--bg-image);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: blur(var(--bg-blur));
+  transform: scale(1.05);
+  transition: filter 250ms ease, background-image 250ms ease;
+}
+.app-wallpaper::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--c-overlay);
+  transition: background 200ms ease;
 }
 
-/* Custom scrollbar — subtle, not flashy */
+/* When no image is set, just paint solid bg */
+.app-wallpaper[data-empty="true"] {
+  background: var(--c-bg);
+}
+.app-wallpaper[data-empty="true"]::after {
+  background: transparent;
+}
+
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -31,50 +90,80 @@ html:not(.dark) body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: var(--c-border-strong);
   border-radius: 8px;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
-html:not(.dark) ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+::-webkit-scrollbar-thumb:hover {
+  background: var(--c-muted-2);
   background-clip: padding-box;
   border: 2px solid transparent;
 }
 
-/* Focus rings */
 *:focus-visible {
-  @apply outline-none ring-2 ring-brand/60 ring-offset-2 ring-offset-bg;
-}
-html:not(.dark) *:focus-visible {
-  @apply ring-offset-bg-light;
+  outline: none;
+  box-shadow: 0 0 0 2px var(--c-bg), 0 0 0 4px rgba(99, 102, 241, 0.55);
+  border-radius: 8px;
 }
 
 @layer components {
-  .card-surface {
-    @apply bg-surface border border-border rounded-card;
+  .glass {
+    background: var(--c-surface);
+    border: 1px solid var(--c-border);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
   }
-  html:not(.dark) .card-surface {
-    @apply bg-surface-light border-border-light;
+  .glass-strong {
+    background: var(--c-surface-hover);
+    border: 1px solid var(--c-border-strong);
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
   }
-
+  .glass-card {
+    @apply glass rounded-card shadow-glass;
+  }
   .text-muted {
-    @apply text-ink-muted;
+    color: var(--c-muted);
   }
-  html:not(.dark) .text-muted {
-    @apply text-ink-light-muted;
+  .text-muted-2 {
+    color: var(--c-muted-2);
+  }
+  .border-app {
+    border-color: var(--c-border);
+  }
+  .border-app-strong {
+    border-color: var(--c-border-strong);
+  }
+  .bg-surface {
+    background: var(--c-surface);
+  }
+  .bg-surface-solid {
+    background: var(--c-surface-solid);
+  }
+  .bg-app {
+    background: var(--c-bg);
+  }
+  .divider {
+    height: 1px;
+    background: var(--c-border);
+    width: 100%;
   }
 
   .skeleton {
-    @apply relative overflow-hidden bg-border/40 rounded-md;
+    position: relative;
+    overflow: hidden;
+    background: var(--c-border);
+    border-radius: 6px;
   }
   .skeleton::after {
     content: "";
-    @apply absolute inset-0;
+    position: absolute;
+    inset: 0;
     background: linear-gradient(
       90deg,
       transparent,
-      rgba(255, 255, 255, 0.05),
+      rgba(255, 255, 255, 0.06),
       transparent
     );
     animation: shimmer 1.4s infinite;
@@ -87,6 +176,13 @@ html:not(.dark) *:focus-visible {
       transparent
     );
   }
+
+  .kbd {
+    @apply inline-flex h-5 min-w-[20px] items-center justify-center rounded border px-1 text-[10.5px] font-medium;
+    color: var(--c-muted);
+    border-color: var(--c-border-strong);
+    background: var(--c-surface);
+  }
 }
 
 @keyframes shimmer {
@@ -98,30 +194,10 @@ html:not(.dark) *:focus-visible {
   }
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* Hide scrollbar utility for horizontal nav strips */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
-.animate-fade-in {
-  animation: fadeIn 200ms ease-out;
-}
-
-@keyframes scaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.97);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-.animate-scale-in {
-  animation: scaleIn 160ms ease-out;
+.no-scrollbar {
+  scrollbar-width: none;
 }

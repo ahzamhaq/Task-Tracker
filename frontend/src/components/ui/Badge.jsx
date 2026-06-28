@@ -1,16 +1,15 @@
 const tones = {
-  muted:
-    "bg-border/40 text-muted [html:not(.dark)_&]:bg-border-light/70 [html:not(.dark)_&]:text-ink-light-muted",
-  brand: "bg-brand/15 text-brand",
+  muted: "bg-[color:var(--c-border)] text-muted",
+  brand: "bg-brand/12 text-brand",
   success: "bg-success/15 text-success",
   warning: "bg-warning/15 text-warning",
   danger: "bg-danger/15 text-danger",
-  purple: "bg-purple-500/15 text-purple-300 [html:not(.dark)_&]:text-purple-600",
-  blue: "bg-blue-500/15 text-blue-300 [html:not(.dark)_&]:text-blue-600",
-  orange:
-    "bg-orange-500/15 text-orange-300 [html:not(.dark)_&]:text-orange-600",
-  gray:
-    "bg-slate-500/15 text-slate-300 [html:not(.dark)_&]:text-slate-600",
+  purple: "bg-purple-500/15 text-purple-400 dark:text-purple-300",
+  blue: "bg-sky-500/15 text-sky-500 dark:text-sky-300",
+  orange: "bg-orange-500/15 text-orange-500 dark:text-orange-300",
+  pink: "bg-pink-500/15 text-pink-500 dark:text-pink-300",
+  emerald: "bg-emerald-500/15 text-emerald-500 dark:text-emerald-300",
+  gray: "bg-slate-500/15 text-slate-500 dark:text-slate-300",
 };
 
 export const priorityTone = (p) =>
@@ -18,6 +17,13 @@ export const priorityTone = (p) =>
 
 export const statusTone = (s) =>
   s === "Completed" ? "success" : s === "In Progress" ? "purple" : "gray";
+
+const CATEGORY_TONES = ["brand", "purple", "blue", "emerald", "orange", "pink"];
+export const categoryTone = (label = "") => {
+  let h = 0;
+  for (let i = 0; i < label.length; i++) h = (h * 31 + label.charCodeAt(i)) >>> 0;
+  return CATEGORY_TONES[h % CATEGORY_TONES.length];
+};
 
 export default function Badge({
   children,

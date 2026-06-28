@@ -16,27 +16,10 @@ export default {
         ],
       },
       colors: {
-        bg: {
-          DEFAULT: "#0F172A",
-          light: "#F8FAFC",
-        },
-        surface: {
-          DEFAULT: "#1E293B",
-          light: "#FFFFFF",
-        },
-        border: {
-          DEFAULT: "#334155",
-          light: "#E2E8F0",
-        },
-        ink: {
-          DEFAULT: "#F8FAFC",
-          muted: "#CBD5E1",
-          light: "#0F172A",
-          "light-muted": "#475569",
-        },
         brand: {
           DEFAULT: "#6366F1",
           hover: "#4F46E5",
+          soft: "#818CF8",
         },
         success: "#22C55E",
         warning: "#F59E0B",
@@ -47,12 +30,22 @@ export default {
         btn: "10px",
       },
       boxShadow: {
-        card: "0 1px 2px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.02)",
-        "card-hover":
-          "0 8px 24px -8px rgba(0,0,0,0.45), 0 0 0 1px rgba(99,102,241,0.25)",
+        glass: "0 1px 0 rgba(255,255,255,0.04) inset, 0 8px 24px -12px rgba(0,0,0,0.4)",
+        "glass-hover":
+          "0 1px 0 rgba(255,255,255,0.06) inset, 0 16px 40px -16px rgba(0,0,0,0.55)",
+        soft: "0 1px 2px rgba(15,23,42,0.04), 0 8px 24px -12px rgba(15,23,42,0.08)",
+      },
+      backdropBlur: {
+        xs: "2px",
       },
       transitionDuration: {
         DEFAULT: "200ms",
+      },
+      maxWidth: {
+        "content": "1500px",
+      },
+      spacing: {
+        sidebar: "260px",
       },
     },
   },
