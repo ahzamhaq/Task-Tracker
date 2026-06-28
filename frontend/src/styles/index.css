@@ -1,0 +1,127 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark light;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  @apply font-sans antialiased bg-bg text-ink;
+  font-feature-settings: "cv11", "ss01", "ss03";
+  text-rendering: optimizeLegibility;
+}
+
+html:not(.dark) body {
+  @apply bg-bg-light text-ink-light;
+}
+
+/* Custom scrollbar — subtle, not flashy */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+html:not(.dark) ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  background-clip: padding-box;
+  border: 2px solid transparent;
+}
+
+/* Focus rings */
+*:focus-visible {
+  @apply outline-none ring-2 ring-brand/60 ring-offset-2 ring-offset-bg;
+}
+html:not(.dark) *:focus-visible {
+  @apply ring-offset-bg-light;
+}
+
+@layer components {
+  .card-surface {
+    @apply bg-surface border border-border rounded-card;
+  }
+  html:not(.dark) .card-surface {
+    @apply bg-surface-light border-border-light;
+  }
+
+  .text-muted {
+    @apply text-ink-muted;
+  }
+  html:not(.dark) .text-muted {
+    @apply text-ink-light-muted;
+  }
+
+  .skeleton {
+    @apply relative overflow-hidden bg-border/40 rounded-md;
+  }
+  .skeleton::after {
+    content: "";
+    @apply absolute inset-0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.05),
+      transparent
+    );
+    animation: shimmer 1.4s infinite;
+  }
+  html:not(.dark) .skeleton::after {
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(0, 0, 0, 0.04),
+      transparent
+    );
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in {
+  animation: fadeIn 200ms ease-out;
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.animate-scale-in {
+  animation: scaleIn 160ms ease-out;
+}
